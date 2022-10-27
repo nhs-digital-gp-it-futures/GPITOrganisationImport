@@ -1,5 +1,40 @@
+variables:
+- name: buildConfiguration
+  value: Release
+
 trigger:
 - main
 
 pool:
   vmImage: ubuntu-latest
+
+jobs:
+- job: build
+  displayName: Build and Test
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+    - task: DotNetCoreCLI@2
+      displayName: Build solution
+      inputs:
+        command: 'build'
+        arguments: '--configuration $(buildConfiguration)'
+    - task: DotNetCoreCLI@2
+      displayName: Run tests
+      inputs:
+        command: 'test'
+        arguments: '--no-build --configuration $(buildConfiguration) -- xunit.parallelizeTestCollections=true'
+    - task: DotNetCoreCLI@2
+      displayName: Publish Function App
+      inputs:
+        command: 'publish'
+        projects: 'src/IncrementalUpdateFunction'
+        arguments: '--no-build --configuration $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/FunctionApp'
+        publishWebProjects: false
+        modifyOutputPath: false
+    - task: PublishBuildArtifacts@1
+      displayName: Package Function App
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/FunctionApp'
+        ArtifactName: 'FunctionApp'
+        publishLocation: 'Container'
