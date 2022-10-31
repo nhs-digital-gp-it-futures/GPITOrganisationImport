@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -8,11 +7,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace IncrementalUpdateFunction
+namespace BuyingCatalogueFunction
 {
-    public static class UpdateTrigger
+    public static class OrganisationUpdateTrigger
     {
-        [FunctionName("UpdateTrigger")]
+        [FunctionName("OrganisationUpdateTrigger")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Admin, "get", "post", Route = null)] HttpRequest req,
             ILogger log)

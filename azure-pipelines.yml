@@ -28,7 +28,7 @@ jobs:
       displayName: Publish Function App
       inputs:
         command: 'publish'
-        projects: 'src/IncrementalUpdateFunction'
+        projects: 'src/BuyingCatalogueFunction'
         arguments: '--no-build --configuration $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/FunctionApp'
         publishWebProjects: false
         modifyOutputPath: false
