@@ -1,40 +1,51 @@
 variables:
-- name: buildConfiguration
-  value: Release
+  - name: buildConfiguration
+    value: Release
+
+parameters:
+  - name: publishProjects
+    type: object
+    default:
+    - BuyingCatalogueFunction
+    - OrganisationImporter
 
 trigger:
-- main
+  - main
 
 pool:
   vmImage: ubuntu-latest
 
 jobs:
-- job: build
-  displayName: Build and Test
-  pool:
-    vmImage: 'ubuntu-latest'
-  steps:
-    - task: DotNetCoreCLI@2
-      displayName: Build solution
-      inputs:
-        command: 'build'
-        arguments: '--configuration $(buildConfiguration)'
-    - task: DotNetCoreCLI@2
-      displayName: Run tests
-      inputs:
-        command: 'test'
-        arguments: '--no-build --configuration $(buildConfiguration) -- xunit.parallelizeTestCollections=true'
-    - task: DotNetCoreCLI@2
-      displayName: Publish Function App
-      inputs:
-        command: 'publish'
-        projects: 'src/BuyingCatalogueFunction'
-        arguments: '--no-build --configuration $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/FunctionApp'
-        publishWebProjects: false
-        modifyOutputPath: false
-    - task: PublishBuildArtifacts@1
-      displayName: Package Function App
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)/FunctionApp'
-        ArtifactName: 'FunctionApp'
-        publishLocation: 'Container'
+  - job: build
+    displayName: Build and Test
+    pool:
+      vmImage: "ubuntu-latest"
+    steps:
+      - task: DotNetCoreCLI@2
+        displayName: Build solution
+        inputs:
+          command: "build"
+          arguments: "--configuration $(buildConfiguration)"
+
+      - task: DotNetCoreCLI@2
+        displayName: Run tests
+        inputs:
+          command: "test"
+          arguments: "--no-build --configuration $(buildConfiguration) -- xunit.parallelizeTestCollections=true"
+
+      - ${{ each project in parameters.publishProjects }}:
+        - task: DotNetCoreCLI@2
+          displayName: Publish ${{ project }}
+          inputs:
+            command: "publish"
+            projects: "src/${{ project }}"
+            arguments: "--no-build --configuration $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/${{ project }}"
+            publishWebProjects: false
+            modifyOutputPath: false
+
+        - task: PublishBuildArtifacts@1
+          displayName: Package ${{ project }}
+          inputs:
+            PathtoPublish: "$(Build.ArtifactStagingDirectory)/${{ project }}"
+            ArtifactName: "${{ project }}"
+            publishLocation: "Container"
